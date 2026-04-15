@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.bigkanji"
+    namespace = "com.tarosuke777.bigkanji"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -12,7 +12,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.bigkanji"
+        applicationId = "com.tarosuke777.bigkanji"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

@@ -1,4 +1,4 @@
-package com.example.bigkanji
+package com.tarosuke777.bigkanji
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

@@ -1,4 +1,4 @@
-package com.example.bigkanji
+package com.tarosuke777.bigkanji
 
 import org.junit.Test
 

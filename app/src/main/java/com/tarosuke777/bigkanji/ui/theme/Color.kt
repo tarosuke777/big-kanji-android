@@ -1,4 +1,4 @@
-package com.example.bigkanji.ui.theme
+package com.tarosuke777.bigkanji.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
