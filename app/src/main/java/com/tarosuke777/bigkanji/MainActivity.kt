@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -34,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.tarosuke777.bigkanji.ui.theme.BigKanjiAndroidTheme
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
@@ -87,7 +90,16 @@ fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text("表示方向:")
-            Button(onClick = { isVertical = !isVertical }) {
+            Button(
+                onClick = { isVertical = !isVertical },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isVertical) {
+                        MaterialTheme.colorScheme.secondary
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    }
+                )
+            ) {
                 Text(if (isVertical) "縦書き中" else "横書き中")
             }
         }
