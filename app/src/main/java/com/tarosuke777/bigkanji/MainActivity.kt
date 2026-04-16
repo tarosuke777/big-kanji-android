@@ -54,7 +54,8 @@ fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
             value = text,
             onValueChange = { newText -> text = newText },
             label = { Text("漢字を入力") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
         )
 
         Spacer(modifier = Modifier.height(20.dp))
