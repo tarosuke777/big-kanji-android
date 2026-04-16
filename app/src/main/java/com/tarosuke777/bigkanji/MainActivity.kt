@@ -1,16 +1,23 @@
 package com.tarosuke777.bigkanji
 
 import android.os.Bundle
+import android.view.Gravity.isVertical
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -27,6 +34,10 @@ import androidx.compose.ui.unit.dp
 import com.tarosuke777.bigkanji.ui.theme.BigKanjiAndroidTheme
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,9 +56,12 @@ class MainActivity : ComponentActivity() {
 fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
     var text by remember { mutableStateOf("") }
     var fontSize by remember { mutableFloatStateOf(100f) }
+    var isVertical by remember { mutableStateOf(false) }
 
     Column(
-        modifier = modifier.fillMaxSize().padding(16.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         TextField(
@@ -67,15 +81,41 @@ fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
             valueRange = 50f..300f
         )
 
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("表示方向:")
+            Button(onClick = { isVertical = !isVertical }) {
+                Text(if (isVertical) "縦書き中" else "横書き中")
+            }
+        }
+
+        val displayPoints = if (isVertical) {
+            // 文字の間に改行(\n)を挟んで縦に見せる
+            text.map { it }.joinToString("\n")
+        } else {
+            text
+        }
+
+        val horizontalScrollState = rememberScrollState()
+        val verticalScrollState = rememberScrollState()
         Box(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .horizontalScroll(horizontalScrollState)
+                .verticalScroll(verticalScrollState),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = text,
+                text = displayPoints,
                 fontSize = fontSize.sp,
-                lineHeight = fontSize.sp,
-                fontFamily = FontFamily.Serif // 手書きに近い明朝体系
+                lineHeight = if (isVertical) fontSize.sp else TextUnit.Unspecified,
+                textAlign = TextAlign.Center,
+                fontFamily = FontFamily.Serif,
+                softWrap = false
             )
         }
     }
