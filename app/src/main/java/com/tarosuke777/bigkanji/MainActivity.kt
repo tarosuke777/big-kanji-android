@@ -74,6 +74,34 @@ fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
             singleLine = true
         )
 
+        val displayPoints = if (isVertical) {
+            // 文字の間に改行(\n)を挟んで縦に見せる
+            text.map { it }.joinToString("\n")
+        } else {
+            text
+        }
+
+        val horizontalScrollState = rememberScrollState()
+        val verticalScrollState = rememberScrollState()
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .horizontalScroll(horizontalScrollState)
+                .verticalScroll(verticalScrollState),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = displayPoints,
+                fontSize = fontSize.sp,
+                lineHeight = if (isVertical) fontSize.sp else TextUnit.Unspecified,
+                textAlign = TextAlign.Center,
+                fontFamily = FontFamily.Serif,
+                softWrap = false
+            )
+        }
+
+
         Spacer(modifier = Modifier.height(20.dp))
 
         // 文字サイズ調整スライダー
@@ -104,33 +132,6 @@ fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
             ) {
                 Text(if (isVertical) "縦書き中" else "横書き中")
             }
-        }
-
-        val displayPoints = if (isVertical) {
-            // 文字の間に改行(\n)を挟んで縦に見せる
-            text.map { it }.joinToString("\n")
-        } else {
-            text
-        }
-
-        val horizontalScrollState = rememberScrollState()
-        val verticalScrollState = rememberScrollState()
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .horizontalScroll(horizontalScrollState)
-                .verticalScroll(verticalScrollState),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = displayPoints,
-                fontSize = fontSize.sp,
-                lineHeight = if (isVertical) fontSize.sp else TextUnit.Unspecified,
-                textAlign = TextAlign.Center,
-                fontFamily = FontFamily.Serif,
-                softWrap = false
-            )
         }
     }
 }
