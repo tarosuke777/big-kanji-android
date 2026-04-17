@@ -119,18 +119,17 @@ fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.Absolute.Right
         ) {
-            Text("表示方向:")
             Button(
                 onClick = { isVertical = !isVertical },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (isVertical) Color(0xFF444444) else Color.Black,
-                    contentColor = Color.White // 文字は白で見やすく
+                    contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text(if (isVertical) "縦書き中" else "横書き中")
+                Text(if (isVertical) "縦書き" else "横書き")
             }
         }
     }
