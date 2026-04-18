@@ -14,9 +14,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
@@ -34,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -59,6 +66,8 @@ fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
     var text by remember { mutableStateOf("") }
     var fontSize by remember { mutableFloatStateOf(100f) }
     var isVertical by remember { mutableStateOf(false) }
+
+    var history by remember { mutableStateOf(listOf<String>()) }
 
     Column(
         modifier = modifier
@@ -93,12 +102,39 @@ fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
             )
         }
 
+        if (history.isNotEmpty()) {
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(history) { historyText ->
+                    AssistChip(
+                        onClick = {
+                            text = historyText
+                        },
+                        label = { Text(historyText) },
+                        colors = AssistChipDefaults.assistChipColors(
+                            labelColor = Color.Black
+                        )
+                    )
+                }
+            }
+        }
+
         TextField(
             value = text,
             onValueChange = { newText -> text = newText },
             label = { Text("漢字を入力") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = {
+                if (text.isNotBlank() && !history.contains(text)) {
+                    history = (listOf(text) + history).take(10)
+                }
+            })
         )
 
         Spacer(modifier = Modifier.height(20.dp))
