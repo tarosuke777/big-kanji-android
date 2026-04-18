@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
@@ -69,6 +70,7 @@ fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
     var isVertical by remember { mutableStateOf(false) }
     var history by remember { mutableStateOf(listOf<String>()) }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
 
     Column(
         modifier = modifier
@@ -136,6 +138,7 @@ fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
                     history = (listOf(text) + history).take(10)
                 }
                 keyboardController?.hide()
+                focusManager.clearFocus()
             })
         )
 
