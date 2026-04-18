@@ -64,9 +64,8 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/**
- * 画面の状態を管理するクラス
- */
+// --- State ---
+
 @Stable
 class KanjiMagnifierState(
     initialText: String = "",
@@ -91,6 +90,8 @@ class KanjiMagnifierState(
 
 @Composable
 fun rememberKanjiMagnifierState() = remember { KanjiMagnifierState() }
+
+// --- UI Components ---
 
 @Composable
 fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
