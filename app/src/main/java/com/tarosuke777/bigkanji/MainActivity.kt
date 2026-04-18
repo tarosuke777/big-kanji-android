@@ -66,14 +66,6 @@ fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TextField(
-            value = text,
-            onValueChange = { newText -> text = newText },
-            label = { Text("漢字を入力") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
         val displayPoints = if (isVertical) {
             // 文字の間に改行(\n)を挟んで縦に見せる
             text.map { it }.joinToString("\n")
@@ -101,6 +93,13 @@ fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
             )
         }
 
+        TextField(
+            value = text,
+            onValueChange = { newText -> text = newText },
+            label = { Text("漢字を入力") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
