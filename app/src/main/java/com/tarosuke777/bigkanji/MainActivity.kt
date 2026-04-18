@@ -8,6 +8,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,7 +23,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
@@ -31,6 +31,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -63,12 +64,37 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * 画面の状態を管理するクラス
+ */
+@Stable
+class KanjiMagnifierState(
+    initialText: String = "",
+    initialFontSize: Float = 100f,
+    initialIsVertical: Boolean = false
+) {
+    var text by mutableStateOf(initialText)
+    var fontSize by mutableFloatStateOf(initialFontSize)
+    var isVertical by mutableStateOf(initialIsVertical)
+    var history by mutableStateOf(listOf<String>())
+        private set
+
+    val displayText: String
+        get() = if (isVertical) text.chunked(1).joinToString("\n") else text
+
+    fun addToHistory() {
+        if (text.isNotBlank() && !history.contains(text)) {
+            history = (listOf(text) + history).take(10)
+        }
+    }
+}
+
+@Composable
+fun rememberKanjiMagnifierState() = remember { KanjiMagnifierState() }
+
 @Composable
 fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
-    var text by remember { mutableStateOf("") }
-    var fontSize by remember { mutableFloatStateOf(100f) }
-    var isVertical by remember { mutableStateOf(false) }
-    var history by remember { mutableStateOf(listOf<String>()) }
+    val state = rememberKanjiMagnifierState()
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
@@ -78,99 +104,134 @@ fun KanjiMagnifierScreen(modifier: Modifier = Modifier) {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val displayPoints = if (isVertical) {
-            // 文字の間に改行(\n)を挟んで縦に見せる
-            text.map { it }.joinToString("\n")
-        } else {
-            text
-        }
+        DisplayArea(
+            text = state.displayText,
+            fontSize = state.fontSize,
+            isVertical = state.isVertical,
+            modifier = Modifier.weight(1f)
+        )
 
-        val horizontalScrollState = rememberScrollState()
-        val verticalScrollState = rememberScrollState()
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .horizontalScroll(horizontalScrollState)
-                .verticalScroll(verticalScrollState),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = displayPoints,
-                fontSize = fontSize.sp,
-                lineHeight = if (isVertical) fontSize.sp else TextUnit.Unspecified,
-                textAlign = TextAlign.Center,
-                fontFamily = FontFamily.Serif,
-                softWrap = false
-            )
-        }
+        HistorySection(
+            history = state.history,
+            onHistoryClick = { state.text = it }
+        )
 
-        if (history.isNotEmpty()) {
+        InputSection(
+            value = state.text,
+            onValueChange = { state.text = it },
+            onDone = {
+                state.addToHistory()
+                keyboardController?.hide()
+                focusManager.clearFocus()
+            }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        ControlSection(
+            fontSize = state.fontSize,
+            onFontSizeChange = { state.fontSize = it },
+            isVertical = state.isVertical,
+            onToggleOrientation = { state.isVertical = !state.isVertical }
+        )
+    }
+}
+
+@Composable
+fun DisplayArea(
+    text: String,
+    fontSize: Float,
+    isVertical: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            fontSize = fontSize.sp,
+            lineHeight = if (isVertical) fontSize.sp else TextUnit.Unspecified,
+            textAlign = TextAlign.Center,
+            fontFamily = FontFamily.Serif,
+            softWrap = false
+        )
+    }
+}
+
+@Composable
+fun HistorySection(
+    history: List<String>,
+    onHistoryClick: (String) -> Unit
+) {
+    if (history.isNotEmpty()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 8.dp)
             ) {
-                items(history) { historyText ->
+                items(history) { item ->
                     AssistChip(
-                        onClick = {
-                            text = historyText
-                        },
-                        label = { Text(historyText) },
-                        colors = AssistChipDefaults.assistChipColors(
-                            labelColor = Color.Black
-                        )
+                        onClick = { onHistoryClick(item) },
+                        label = { Text(item) }
                     )
                 }
             }
         }
+    }
+}
 
-        TextField(
-            value = text,
-            onValueChange = { newText -> text = newText },
-            label = { Text("漢字を入力") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = {
-                if (text.isNotBlank() && !history.contains(text)) {
-                    history = (listOf(text) + history).take(10)
-                }
-                keyboardController?.hide()
-                focusManager.clearFocus()
-            })
-        )
+@Composable
+fun InputSection(
+    value: String,
+    onValueChange: (String) -> Unit,
+    onDone: () -> Unit
+) {
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text("漢字を入力") },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { onDone() })
+    )
+}
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // 文字サイズ調整スライダー
-        Slider(
-            value = fontSize,
-            onValueChange = { fontSize = it },
-            valueRange = 50f..300f,
-            colors = SliderDefaults.colors(
-                thumbColor = Color.Black,      // つまみの色
-                activeTrackColor = Color.Black, // 選択されている側のバーの色
-                inactiveTrackColor = Color.Gray // 選択されていない側のバーの色
+@Composable
+fun ControlSection(
+    fontSize: Float,
+    onFontSizeChange: (Float) -> Unit,
+    isVertical: Boolean,
+    onToggleOrientation: () -> Unit
+) {
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Slider(
+                value = fontSize,
+                onValueChange = onFontSizeChange,
+                valueRange = 50f..400f,
+                modifier = Modifier.weight(1f),
+                colors = SliderDefaults.colors(
+                    thumbColor = Color.Black,
+                    activeTrackColor = Color.Black
+                )
             )
-        )
+        }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Absolute.Right
+        Button(
+            onClick = onToggleOrientation,
+            modifier = Modifier.align(Alignment.End),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isVertical) Color(0xFF444444) else Color.Black
+            ),
+            shape = RoundedCornerShape(8.dp)
         ) {
-            Button(
-                onClick = { isVertical = !isVertical },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isVertical) Color(0xFF444444) else Color.Black,
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(if (isVertical) "縦書き" else "横書き")
-            }
+            Text(if (isVertical) "縦書き" else "横書き")
         }
     }
 }
